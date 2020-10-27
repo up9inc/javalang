@@ -8,18 +8,21 @@ def setup_java_class(content_to_add):
         given content_to_add contained within a method.
     """
     template = """
-public class Lambda {
-
-    public static void main(String args[]) {
+public class Lambda
+{
+    public static void main(String args[])
+    {
         %s
     }
 }
-        """
+
+"""
     return template % content_to_add
 
 
 class UnparserTestCase(unittest.TestCase):
     def assertUnparse(self, out):
+        # print(out)
         out = out[1:]
         tree = parse.parse(out)
         result = unparse.unparse(tree)
@@ -66,9 +69,8 @@ class LambdaSupportTest(UnparserTestCase):
         """ tests support for lambda with parameters with inferred types. """
         test_classes = [
             setup_java_class("(bar) -> bar + 1;"),
-            setup_java_class("bar -> bar + 1;"),
-            setup_java_class("x -> x.length();"),
-            setup_java_class("y -> { y.boom(); };"),
+            setup_java_class("(x) -> x.length();"),
+            setup_java_class("(y) -> y.boom();"),
         ]
         for test_class in test_classes:
             self.assertUnparse(test_class)
@@ -94,7 +96,7 @@ class LambdaSupportTest(UnparserTestCase):
 
     def test_cast_works(self):
         """ this tests that a cast expression works as expected. """
-        self.assertUnparse(setup_java_class("String x = (String) A.x() ;"))
+        self.assertUnparse(setup_java_class("String x = (String) A.x();"))
 
 
 class MethodReferenceSyntaxTest(UnparserTestCase):
@@ -141,6 +143,15 @@ class MethodReferenceSyntaxTest(UnparserTestCase):
             from a primary type.
         """
         self.assertUnparse(setup_java_class("int[]::new;"))
+
+
+class MethodInvocationSyntaxTest(UnparserTestCase):
+
+    """ Contains tests for java 8 method reference syntax. """
+
+    def test_method_invocation(self):
+        """ tests that method invocations are supported. """
+        self.assertUnparse(setup_java_class("System.out.println(\"Hello World\");"))
 
 
 class InterfaceSupportTest(UnparserTestCase):

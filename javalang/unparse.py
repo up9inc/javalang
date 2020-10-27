@@ -14,8 +14,10 @@ class Generator():
         return result
 
     def class_declaration(self, node):
-        result = ''
-        result += '%sclass %s\n{\n' % (self.indent * INDENT, node.name)
+        result = '%s' % (self.indent * INDENT)
+        modifiers = sorted(list(node.modifiers))
+        result += ' '.join(modifiers)
+        result += ' class %s\n{\n' % node.name
         self.indent += 1
         for _node in node.body:
             result += self.unparse(_node)
@@ -50,21 +52,61 @@ class Generator():
         return node.name
 
     def statement_expression(self, node):
-        result = ''
+        result = '%s' % (self.indent * INDENT)
         result += self.unparse(node.expression)
+        result += ';\n'
         return result
 
     def method_invocation(self, node):
         result = ''
-        result += '%s%s.%s' % (self.indent * INDENT, node.qualifier, node.member)
+        result += '%s.%s' % (node.qualifier, node.member)
         result += '('
         for _node in node.arguments:
             result += self.unparse(_node)
-        result += ');\n'
+        result += ')'
         return result
 
     def literal(self, node):
         return node.value
+
+    def lambda_expression(self, node):
+        result = '('
+        for _node in node.parameters:
+            result += self.unparse(_node)
+        result += ') -> '
+        result += self.unparse(node.body)
+        return result
+
+    def member_reference(self, node):
+        return node.member
+
+    def binary_operation(self, node):
+        result = ''
+        result += self.unparse(node.operandl)
+        result += ' %s ' % node.operator
+        result += self.unparse(node.operandr)
+        return result
+
+    def local_variable_declaration(self, node):
+        result = '%s' % (self.indent * INDENT)
+        result += '%s ' % self.unparse(node.type)
+        for _node in node.declarators:
+            result += self.unparse(_node)
+        result += ';\n'
+        return result
+
+    def variable_declarator(self, node):
+        result = ''
+        result += node.name
+        result += ' = '
+        result += self.unparse(node.initializer)
+        return result
+
+    def cast(self, node):
+        result = ''
+        result += '(%s) ' % self.unparse(node.type)
+        result += self.unparse(node.expression)
+        return result
 
     def unparse(self, tree):
         node_type = tree.__class__.__name__
