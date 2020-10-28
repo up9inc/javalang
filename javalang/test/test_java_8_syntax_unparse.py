@@ -44,8 +44,12 @@ class LambdaSupportTest(UnparserTestCase):
         test_classes = [
             setup_java_class("() -> 3;"),
             setup_java_class("() -> null;"),
-            setup_java_class("() -> { return 21; };"),
-            setup_java_class("() -> { System.exit(1); };"),
+            setup_java_class("""() -> {
+            return 21;
+        };"""),
+            setup_java_class("""() -> {
+            System.exit(1);
+        };"""),
         ]
         for test_class in test_classes:
             self.assertUnparse(test_class)
@@ -54,9 +58,11 @@ class LambdaSupportTest(UnparserTestCase):
         """ tests support for lambda with no parameters and a
             complex expression body.
         """
-        code = """
-                () -> {
-            if (true) return 21;
+        code = """() -> {
+            if (true)
+            {
+                return 21;
+            }
             else
             {
                 int result = 21;

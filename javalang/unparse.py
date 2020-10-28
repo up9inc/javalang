@@ -74,7 +74,18 @@ class Generator():
         for _node in node.parameters:
             result += self.unparse(_node)
         result += ') -> '
-        result += self.unparse(node.body)
+        if isinstance(node.body, list):
+            if not node.body:
+                result += '{}'
+            else:
+                result += '{\n'
+                self.indent += 1
+                for _node in node.body:
+                    result += '%s' % self.unparse(_node)
+                self.indent -= 1
+                result += '%s}' % (self.indent * INDENT)
+        else:
+            result += self.unparse(node.body)
         return result
 
     def member_reference(self, node):
@@ -107,6 +118,33 @@ class Generator():
         result += '(%s) ' % self.unparse(node.type)
         result += self.unparse(node.expression)
         return result
+
+    def if_statement(self, node):
+        result = '%sif (' % (self.indent * INDENT)
+        result += self.unparse(node.condition)
+        result += ')\n'
+        result += self.unparse(node.then_statement)
+        if node.else_statement:
+            result += '%selse\n' % (self.indent * INDENT)
+            result += self.unparse(node.else_statement)
+        return result
+
+    def return_statement(self, node):
+        result = '%sreturn' % (self.indent * INDENT)
+        result += ' %s;\n' % self.unparse(node.expression)
+        return result
+
+    def block_statement(self, node):
+        result = '%s{\n' % (self.indent * INDENT)
+        self.indent += 1
+        for _node in node.statements:
+            result += self.unparse(_node)
+        self.indent -= 1
+        result += '%s}\n' % (self.indent * INDENT)
+        return result
+
+    def basic_type(self, node):
+        return node.name
 
     def unparse(self, tree):
         node_type = tree.__class__.__name__
