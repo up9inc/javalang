@@ -26,20 +26,31 @@ class Generator():
         return result
 
     def method_declaration(self, node):
-        result = '%s' % (self.indent * INDENT)
+        result = ''
+        for _node in node.annotations:
+            result += self.unparse(_node)
+        result += '%s' % (self.indent * INDENT)
         modifiers = sorted(list(node.modifiers))
         result += ' '.join(modifiers)
-        if node.return_type == None:
-            result += ' void'
+        if modifiers:
+            result += ' '
+        if node.return_type is None:
+            result += 'void'
+        else:
+            result += self.unparse(node.return_type)
         result += ' %s(' % node.name
         for _node in node.parameters:
             result += self.unparse(_node)
-        result += ')\n%s{\n' % (self.indent * INDENT)
-        self.indent += 1
-        for _node in node.body:
-            result += self.unparse(_node)
-        self.indent -= 1
-        result += '%s}\n' % (self.indent * INDENT)
+        result += ')'
+        if node.body:
+            result += '\n%s{\n' % (self.indent * INDENT)
+            self.indent += 1
+            for _node in node.body:
+                result += self.unparse(_node)
+            self.indent -= 1
+            result += '%s}\n' % (self.indent * INDENT)
+        else:
+            result += ';\n'
         return result
 
     def formal_parameter(self, node):
@@ -97,7 +108,6 @@ class Generator():
         if node.selectors:
             selectors = ''
             for _node in node.selectors:
-                print(node)
                 selectors += '.%s' % self.unparse(_node)
             return '%s%s' % (node.member, selectors)
         else:
@@ -170,13 +180,40 @@ class Generator():
                 type_arguments += self.unparse(_node)
             if node.type_arguments:
                 type_arguments += ' '
-            return '%s::%s%s' % (self.unparse(node.expression), type_arguments, self.unparse(node.method))
+            return '%s::%s%s' % (
+                self.unparse(node.expression),
+                type_arguments,
+                self.unparse(node.method)
+            )
 
     def type_argument(self, node):
         return '<%s>' % self.unparse(node.type)
 
     def keyword(self, node):
         return node.value
+
+    def interface_declaration(self, node):
+        result = 'interface %s\n{\n' % node.name
+        self.indent += 1
+        for _node in node.body:
+            result += self.unparse(_node)
+        self.indent -= 1
+        result += '%s}\n\n' % (self.indent * INDENT)
+        return result
+
+    def class_creator(self, node):
+        result = 'new %s()\n' % self.unparse(node.type)
+        result += '%s{\n' % (self.indent * INDENT)
+        self.indent += 1
+        for _node in node.body:
+            result += self.unparse(_node)
+        self.indent -= 1
+        result += '%s}' % (self.indent * INDENT)
+
+        return result
+
+    def annotation(self, node):
+        return '%s@%s\n' % (self.indent * INDENT, node.name)
 
     def unparse(self, tree):
         node_type = tree.__class__.__name__
@@ -185,6 +222,7 @@ class Generator():
         # print(tree.__dict__)
         result = getattr(self, node_type)(tree)
         return result
+
 
 def unparse(tree):
     generator = Generator()

@@ -170,29 +170,36 @@ class InterfaceSupportTest(UnparserTestCase):
 
     def test_interface_support_static_methods(self):
         out = """
-interface Foo {
+interface Foo
+{
     void foo();
-
-    static Foo create() {
-        return new Foo() {
+    static Bar create()
+    {
+        return new Baz()
+        {
             @Override
-            void foo() {
-                System.out.println("foo");
+            void bar()
+            {
+                System.out.println("baz");
             }
         };
     }
 }
-        """
+
+"""
         self.assertUnparse(out)
 
     def test_interface_support_default_methods(self):
         out = """
-interface Foo {
-    default void foo() {
+interface Foo
+{
+    default void foo()
+    {
         System.out.println("foo");
     }
 }
-        """
+
+"""
         self.assertUnparse(out)
 
 
