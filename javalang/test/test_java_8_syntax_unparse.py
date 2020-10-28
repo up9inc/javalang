@@ -84,10 +84,14 @@ class LambdaSupportTest(UnparserTestCase):
     def test_parameter_with_type_expression_body(self):
         """ tests support for lambda with parameters with formal types. """
         test_classes = [
-            setup_java_class("(int foo) -> { return foo + 2; };"),
+            setup_java_class("""(int foo) -> {
+            return foo + 2;
+        };"""),
             setup_java_class("(String s) -> s.length();"),
             setup_java_class("(int foo) -> foo + 1;"),
-            setup_java_class("(Thread th) -> { th.start(); };"),
+            setup_java_class("""(Thread th) -> {
+            th.start();
+        };"""),
             setup_java_class("(String foo, String bar) -> "
                              "foo + bar;"),
         ]

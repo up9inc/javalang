@@ -45,7 +45,10 @@ class Generator():
     def formal_parameter(self, node):
         result = ''
         result += self.unparse(node.type)
-        result += ' %s[]' % node.name
+        if not node.type.dimensions:
+            result += ' %s' % node.name
+        else:
+            result += ' %s[]' % node.name
         return result
 
     def reference_type(self, node):
@@ -72,7 +75,9 @@ class Generator():
     def lambda_expression(self, node):
         result = '('
         for _node in node.parameters:
-            result += self.unparse(_node)
+            result += '%s, ' % self.unparse(_node)
+        if node.parameters:
+            result = result[:-2]
         result += ') -> '
         if isinstance(node.body, list):
             if not node.body:
@@ -145,6 +150,23 @@ class Generator():
 
     def basic_type(self, node):
         return node.name
+
+    def inferred_formal_parameter(self, node):
+        return node.name
+
+    def method_reference(self, node):
+        if hasattr(node, 'member'):
+            return node.member
+        else:
+            type_arguments = ''
+            for _node in node.type_arguments:
+                type_arguments += self.unparse(_node)
+            if node.type_arguments:
+                type_arguments += ' '
+            return '%s::%s%s' % (self.unparse(node.expression), type_arguments, self.unparse(node.method))
+
+    def type_argument(self, node):
+        return '<%s>' % self.unparse(node.type)
 
     def unparse(self, tree):
         node_type = tree.__class__.__name__
