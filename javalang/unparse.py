@@ -94,7 +94,14 @@ class Generator():
         return result
 
     def member_reference(self, node):
-        return node.member
+        if node.selectors:
+            selectors = ''
+            for _node in node.selectors:
+                print(node)
+                selectors += '.%s' % self.unparse(_node)
+            return '%s%s' % (node.member, selectors)
+        else:
+            return node.member
 
     def binary_operation(self, node):
         result = ''
@@ -167,6 +174,9 @@ class Generator():
 
     def type_argument(self, node):
         return '<%s>' % self.unparse(node.type)
+
+    def keyword(self, node):
+        return node.value
 
     def unparse(self, tree):
         node_type = tree.__class__.__name__
