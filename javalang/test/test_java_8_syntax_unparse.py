@@ -8,6 +8,7 @@ def setup_java_class(content_to_add):
         given content_to_add contained within a method.
     """
     template = """
+
 public class Lambda
 {
     public static void main(String args[])
@@ -170,6 +171,7 @@ class InterfaceSupportTest(UnparserTestCase):
 
     def test_interface_support_static_methods(self):
         out = """
+
 interface Foo
 {
     void foo();
@@ -191,6 +193,7 @@ interface Foo
 
     def test_interface_support_default_methods(self):
         out = """
+
 interface Foo
 {
     default void foo()

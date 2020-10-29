@@ -9,12 +9,19 @@ class Generator():
 
     def compilation_unit(self, node):
         result = ''
+        if node.package:
+            result += self.unparse(node.package)
+        for _node in node.imports:
+            result += self.unparse(_node)
         for _node in node.types:
             result += self.unparse(_node)
         return result
 
     def class_declaration(self, node):
-        result = '%s' % (self.indent * INDENT)
+        result = '\n'
+        if node.documentation:
+            result += '%s\n' % node.documentation
+        result += '%s' % (self.indent * INDENT)
         modifiers = sorted(list(node.modifiers))
         result += ' '.join(modifiers)
         result += ' class %s\n{\n' % node.name
@@ -27,6 +34,8 @@ class Generator():
 
     def method_declaration(self, node):
         result = ''
+        if node.documentation:
+            result += '%s%s\n' % (self.indent * INDENT, node.documentation)
         for _node in node.annotations:
             result += self.unparse(_node)
         result += '%s' % (self.indent * INDENT)
@@ -42,6 +51,11 @@ class Generator():
         for _node in node.parameters:
             result += self.unparse(_node)
         result += ')'
+        if node.throws:
+            result += ' throws'
+            for el in node.throws:
+                result += ' %s,' % el
+            result = result[:-1]
         if node.body:
             result += '\n%s{\n' % (self.indent * INDENT)
             self.indent += 1
@@ -73,10 +87,15 @@ class Generator():
 
     def method_invocation(self, node):
         result = ''
-        result += '%s.%s' % (node.qualifier, node.member)
+        if node.qualifier:
+            result += '%s.' % node.qualifier
+        result += '%s' % node.member
         result += '('
         for _node in node.arguments:
             result += self.unparse(_node)
+            result += ', '
+        if node.arguments:
+            result = result[:-2]
         result += ')'
         return result
 
@@ -193,7 +212,7 @@ class Generator():
         return node.value
 
     def interface_declaration(self, node):
-        result = 'interface %s\n{\n' % node.name
+        result = '\ninterface %s\n{\n' % node.name
         self.indent += 1
         for _node in node.body:
             result += self.unparse(_node)
@@ -228,9 +247,20 @@ class Generator():
         result += ';\n'
         return result
 
+    def package_declaration(self, node):
+        return 'package %s;\n\n' % node.name
+
+    def _import(self, node):
+        result = 'import '
+        if node.static:
+            result += 'static '
+        result += '%s;\n' % node.path
+        return result
+
     def unparse(self, tree):
         node_type = tree.__class__.__name__
         node_type = inflection.underscore(node_type)
+        node_type = '_import' if node_type == 'import' else node_type
         # print(node_type)
         # print(tree.__dict__)
         result = getattr(self, node_type)(tree)
