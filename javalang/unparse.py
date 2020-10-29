@@ -202,18 +202,31 @@ class Generator():
         return result
 
     def class_creator(self, node):
-        result = 'new %s()\n' % self.unparse(node.type)
-        result += '%s{\n' % (self.indent * INDENT)
-        self.indent += 1
-        for _node in node.body:
-            result += self.unparse(_node)
-        self.indent -= 1
-        result += '%s}' % (self.indent * INDENT)
+        result = 'new %s()' % self.unparse(node.type)
+        if node.body:
+            result += '\n%s{\n' % (self.indent * INDENT)
+            self.indent += 1
+            for _node in node.body:
+                result += self.unparse(_node)
+            self.indent -= 1
+            result += '%s}' % (self.indent * INDENT)
 
         return result
 
     def annotation(self, node):
         return '%s@%s\n' % (self.indent * INDENT, node.name)
+
+    def field_declaration(self, node):
+        result = '%s' % (self.indent * INDENT)
+        modifiers = sorted(list(node.modifiers))
+        result += ' '.join(modifiers)
+        if modifiers:
+            result += ' '
+        result += self.unparse(node.type)
+        for _node in node.declarators:
+            result += self.unparse(_node)
+        result += ';\n'
+        return result
 
     def unparse(self, tree):
         node_type = tree.__class__.__name__
