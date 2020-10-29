@@ -11,10 +11,12 @@ class Generator():
         result = ''
         if node.package:
             result += self.unparse(node.package)
-        for _node in node.imports:
-            result += self.unparse(_node)
-        for _node in node.types:
-            result += self.unparse(_node)
+        if node.imports:
+            for _node in node.imports:
+                result += self.unparse(_node)
+        if node.types:
+            for _node in node.types:
+                result += self.unparse(_node)
         return result
 
     def class_declaration(self, node):
