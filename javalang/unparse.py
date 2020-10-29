@@ -33,7 +33,7 @@ class Generator():
         return result
 
     def method_declaration(self, node):
-        result = ''
+        result = '\n'
         if node.documentation:
             result += '%s%s\n' % (self.indent * INDENT, node.documentation)
         for _node in node.annotations:
@@ -77,7 +77,10 @@ class Generator():
         return result
 
     def reference_type(self, node):
-        return node.name
+        result = node.name
+        if node.sub_type:
+            result += '.%s' % self.unparse(node.sub_type)
+        return result
 
     def statement_expression(self, node):
         result = '%s' % (self.indent * INDENT)
@@ -97,6 +100,9 @@ class Generator():
         if node.arguments:
             result = result[:-2]
         result += ')'
+        if node.selectors:
+            for _node in node.selectors:
+                result += '.%s' % self.unparse(_node)
         return result
 
     def literal(self, node):
@@ -127,7 +133,10 @@ class Generator():
         if node.selectors:
             selectors = ''
             for _node in node.selectors:
-                selectors += '.%s' % self.unparse(_node)
+                if _node.__class__.__name__ == 'ArraySelector':
+                    selectors += '%s' % self.unparse(_node)
+                else:
+                    selectors += '.%s' % self.unparse(_node)
             return '%s%s' % (node.member, selectors)
         else:
             return node.member
@@ -185,7 +194,12 @@ class Generator():
         return result
 
     def basic_type(self, node):
-        return node.name
+        result = ''
+        if not node.dimensions:
+            result += '%s' % node.name
+        else:
+            result += '%s[]' % node.name
+        return result
 
     def inferred_formal_parameter(self, node):
         return node.name
@@ -222,6 +236,13 @@ class Generator():
 
     def class_creator(self, node):
         result = 'new %s()' % self.unparse(node.type)
+        if node.selectors:
+            result += '\n'
+            self.indent += 1
+            for _node in node.selectors:
+                result += '%s.%s\n' % (self.indent * INDENT, self.unparse(_node))
+            result = result[:-1]
+            self.indent -= 1
         if node.body:
             result += '\n%s{\n' % (self.indent * INDENT)
             self.indent += 1
@@ -243,7 +264,7 @@ class Generator():
             result += ' '
         result += self.unparse(node.type)
         for _node in node.declarators:
-            result += self.unparse(_node)
+            result += ' %s' % self.unparse(_node)
         result += ';\n'
         return result
 
@@ -255,6 +276,72 @@ class Generator():
         if node.static:
             result += 'static '
         result += '%s;\n' % node.path
+        return result
+
+    def try_statement(self, node):
+        result = '\n%stry' % (self.indent * INDENT)
+        if node.resources:
+            result += ' '
+            for _node in node.resources:
+                result += self.unparse(_node)
+        if node.block:
+            result += '\n%s{\n' % (self.indent * INDENT)
+            self.indent += 1
+            for _node in node.block:
+                result += self.unparse(_node)
+            self.indent -= 1
+            result += '%s}' % (self.indent * INDENT)
+        result += '\n'
+        if node.catches:
+            for _node in node.catches:
+                result += self.unparse(_node)
+        if node.finally_block:
+            result += '%sfinally' % (self.indent * INDENT)
+            result += '\n%s{\n' % (self.indent * INDENT)
+            self.indent += 1
+            for _node in node.finally_block:
+                result += self.unparse(_node)
+            self.indent -= 1
+            result += '%s}\n' % (self.indent * INDENT)
+        return result
+
+    def try_resource(self, node):
+        result = '('
+        result += self.unparse(node.type)
+        result += ' %s = ' % node.name
+        result += self.unparse(node.value)
+        result += ')'
+        return result
+
+    def array_initializer(self, node):
+        result = '{'
+        for _node in node.initializers:
+            result += '%s, ' % self.unparse(_node)
+        if node.initializers:
+            result = result[:-2]
+        result += '}'
+        return result
+
+    def array_selector(self, node):
+        return '[%s]' % self.unparse(node.index)
+
+    def catch_clause(self, node):
+        result = '%scatch (' % (self.indent * INDENT)
+        result += self.unparse(node.parameter)
+        result += ')'
+        if node.block:
+            result += '\n%s{\n' % (self.indent * INDENT)
+            self.indent += 1
+            for _node in node.block:
+                result += self.unparse(_node)
+            self.indent -= 1
+            result += '%s}' % (self.indent * INDENT)
+        result += '\n'
+        return result
+
+    def catch_clause_parameter(self, node):
+        result = ' '.join(node.types)
+        result += ' %s' % node.name
         return result
 
     def unparse(self, tree):

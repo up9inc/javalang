@@ -11,6 +11,7 @@ def setup_java_class(content_to_add):
 
 public class Lambda
 {
+
     public static void main(String args[])
     {
         %s
@@ -174,11 +175,14 @@ class InterfaceSupportTest(UnparserTestCase):
 
 interface Foo
 {
+
     void foo();
+
     static Bar create()
     {
         return new Baz()
         {
+
             @Override
             void bar()
             {
@@ -196,6 +200,7 @@ interface Foo
 
 interface Foo
 {
+
     default void foo()
     {
         System.out.println("foo");
