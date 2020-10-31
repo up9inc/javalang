@@ -29,7 +29,7 @@ http://docs.oracle.com/javase/specs/jls/se8/html/.
 
 """,
     zip_safe = False,
-    install_requires = ['six',],
+    install_requires = ['six', 'inflection'],
     tests_require = ["nose",],
     test_suite = "nose.collector",
 )
