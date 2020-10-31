@@ -45,13 +45,18 @@ class Generator():
         result += ' '.join(modifiers)
         if modifiers:
             result += ' '
-        if node.return_type is None:
-            result += 'void'
+        if hasattr(node, 'return_type'):
+            if node.return_type is None:
+                result += 'void'
+            else:
+                result += self.unparse(node.return_type)
         else:
-            result += self.unparse(node.return_type)
+            result = result[:-1]
         result += ' %s(' % node.name
         for _node in node.parameters:
-            result += self.unparse(_node)
+            result += '%s, ' % self.unparse(_node)
+        if node.parameters:
+            result = result[:-2]
         result += ')'
         if node.throws:
             result += ' throws'
@@ -72,16 +77,15 @@ class Generator():
     def formal_parameter(self, node):
         result = ''
         result += self.unparse(node.type)
-        if not node.type.dimensions:
-            result += ' %s' % node.name
-        else:
-            result += ' %s[]' % node.name
+        result += ' %s' % node.name
         return result
 
     def reference_type(self, node):
         result = node.name
         if node.sub_type:
             result += '.%s' % self.unparse(node.sub_type)
+        if node.dimensions:
+            result += '[]' * len(node.dimensions)
         return result
 
     def statement_expression(self, node):
@@ -152,17 +156,33 @@ class Generator():
 
     def local_variable_declaration(self, node):
         result = '%s' % (self.indent * INDENT)
+        modifiers = sorted(list(node.modifiers))
+        result += ' '.join(modifiers)
+        if modifiers:
+            result += ' '
         result += '%s ' % self.unparse(node.type)
         for _node in node.declarators:
             result += self.unparse(_node)
         result += ';\n'
         return result
 
+    def variable_declaration(self, node):
+        result = ''
+        modifiers = sorted(list(node.modifiers))
+        result += ' '.join(modifiers)
+        if modifiers:
+            result += ' '
+        result += '%s ' % self.unparse(node.type)
+        for _node in node.declarators:
+            result += self.unparse(_node)
+        return result
+
     def variable_declarator(self, node):
         result = ''
         result += node.name
-        result += ' = '
-        result += self.unparse(node.initializer)
+        if node.initializer:
+            result += ' = '
+            result += self.unparse(node.initializer)
         return result
 
     def cast(self, node):
@@ -237,7 +257,10 @@ class Generator():
         return result
 
     def class_creator(self, node):
-        result = 'new %s()' % self.unparse(node.type)
+        result = 'new %s(' % self.unparse(node.type)
+        for _node in node.arguments:
+            result += self.unparse(_node)
+        result += ')'
         if node.selectors:
             result += '\n'
             self.indent += 1
@@ -281,7 +304,7 @@ class Generator():
         return result
 
     def try_statement(self, node):
-        result = '\n%stry' % (self.indent * INDENT)
+        result = '%stry' % (self.indent * INDENT)
         if node.resources:
             result += ' '
             for _node in node.resources:
@@ -317,10 +340,26 @@ class Generator():
 
     def array_initializer(self, node):
         result = '{'
+        was_nested = False
+        is_empty = True
         for _node in node.initializers:
-            result += '%s, ' % self.unparse(_node)
-        if node.initializers:
-            result = result[:-2]
+            if _node.__class__.__name__ == 'ArrayInitializer':
+                separator = ','
+                if is_empty:
+                    separator = ''
+                    is_empty = False
+                was_nested = True
+                self.indent += 1
+                result += '%s\n%s%s' % (separator, self.indent * INDENT, self.unparse(_node))
+                self.indent -= 1
+            else:
+                separator = ', '
+                if is_empty:
+                    separator = ''
+                    is_empty = False
+                result += '%s%s' % (separator, self.unparse(_node))
+        if was_nested:
+            result += '\n%s' % (self.indent * INDENT)
         result += '}'
         return result
 
@@ -345,6 +384,28 @@ class Generator():
         result = ' '.join(node.types)
         result += ' %s' % node.name
         return result
+
+    def constructor_declaration(self, node):
+        return self.method_declaration(node)
+
+    def assignment(self, node):
+        result = self.unparse(node.expressionl)
+        result += ' %s ' % node.type
+        result += self.unparse(node.value)
+        return result
+
+    def for_statement(self, node):
+        result = '%sfor (' % (self.indent * INDENT)
+        result += self.unparse(node.control)
+        result += ')\n'
+        result += self.unparse(node.body)
+        return result
+
+    def enhanced_for_control(self, node):
+        return '%s : %s' % (self.unparse(node.var), self.unparse(node.iterable))
+
+    def class_reference(self, node):
+        return '%s.class' % self.unparse(node.type)
 
     def unparse(self, tree):
         node_type = tree.__class__.__name__
