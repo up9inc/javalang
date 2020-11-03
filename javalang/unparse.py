@@ -23,6 +23,8 @@ class Generator():
         result = '\n'
         if node.documentation:
             result += '%s\n' % node.documentation
+        for _node in node.annotations:
+            result += self.unparse(_node)
         result += '%s' % (self.indent * INDENT)
         modifiers = sorted(list(node.modifiers))
         result += ' '.join(modifiers)
@@ -279,7 +281,11 @@ class Generator():
         return result
 
     def annotation(self, node):
-        return '%s@%s\n' % (self.indent * INDENT, node.name)
+        result = '%s@%s' % (self.indent * INDENT, node.name)
+        if node.element is not None:
+            result += '(%s)' % node.element
+        result += '\n'
+        return result
 
     def field_declaration(self, node):
         result = '%s' % (self.indent * INDENT)
