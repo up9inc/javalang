@@ -138,6 +138,9 @@ class Generator():
         return result
 
     def member_reference(self, node):
+        result = ''
+        if node.qualifier:
+            result += '%s.' % node.qualifier
         if node.selectors:
             selectors = ''
             for _node in node.selectors:
@@ -145,9 +148,10 @@ class Generator():
                     selectors += '%s' % self.unparse(_node)
                 else:
                     selectors += '.%s' % self.unparse(_node)
-            return '%s%s' % (node.member, selectors)
+            result += '%s%s' % (node.member, selectors)
         else:
-            return node.member
+            result += node.member
+        return result
 
     def binary_operation(self, node):
         result = ''
