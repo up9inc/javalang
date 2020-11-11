@@ -417,6 +417,13 @@ class Generator():
     def class_reference(self, node):
         return '%s.class' % self.unparse(node.type)
 
+    def array_creator(self, node):
+        result = 'new %s' % self.unparse(node.type)
+        if node.dimensions:
+            result += '[]' * len(node.dimensions)
+        result += self.unparse(node.initializer)
+        return result
+
     def unparse(self, tree):
         node_type = tree.__class__.__name__
         node_type = inflection.underscore(node_type)
