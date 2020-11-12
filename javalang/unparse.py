@@ -1,5 +1,7 @@
 import inflection
 
+from . import tree
+
 INDENT = '    '
 
 
@@ -204,7 +206,10 @@ class Generator():
         result += self.unparse(node.then_statement)
         if node.else_statement:
             result += '%selse\n' % (self.indent * INDENT)
-            result += self.unparse(node.else_statement)
+            else_statement_result = self.unparse(node.else_statement)
+            if isinstance(node.else_statement, tree.IfStatement):
+                result = result[:-1]
+                result += ' %s' % else_statement_result.lstrip()
         return result
 
     def return_statement(self, node):
