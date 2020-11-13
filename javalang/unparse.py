@@ -30,7 +30,13 @@ class Generator():
         result += '%s' % (self.indent * INDENT)
         modifiers = sorted(list(node.modifiers))
         result += ' '.join(modifiers)
-        result += ' class %s\n{\n' % node.name
+        result += ' class %s' % node.name
+        if node.implements:
+            result += ' %s' % 'implements'
+            for _node in node.implements:
+                result += ' %s,' % self.unparse(_node)
+            result = result[:-1]
+        result += '\n{\n'
         self.indent += 1
         for _node in node.body:
             result += self.unparse(_node)
