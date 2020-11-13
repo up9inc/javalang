@@ -36,7 +36,7 @@ class Generator():
             for _node in node.implements:
                 result += ' %s,' % self.unparse(_node)
             result = result[:-1]
-        result += '\n{\n'
+        result += '\n{'
         self.indent += 1
         for _node in node.body:
             result += self.unparse(_node)
