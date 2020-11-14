@@ -86,6 +86,10 @@ class Generator():
 
     def formal_parameter(self, node):
         result = ''
+        if node.modifiers:
+            modifiers = sorted(list(node.modifiers))
+            result += ' '.join(modifiers)
+            result += ' '
         result += self.unparse(node.type)
         result += ' %s' % node.name
         return result
