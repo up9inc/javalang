@@ -94,6 +94,12 @@ class Generator():
         result = node.name
         if node.sub_type:
             result += '.%s' % self.unparse(node.sub_type)
+        if node.arguments:
+            result += '<'
+            for _node in node.arguments:
+                result += '%s, ' % self.unparse(_node)
+            result = result[:-2]
+            result += '>'
         if node.dimensions:
             result += '[]' * len(node.dimensions)
         return result
@@ -259,7 +265,7 @@ class Generator():
             )
 
     def type_argument(self, node):
-        return '<%s>' % self.unparse(node.type)
+        return '%s' % self.unparse(node.type)
 
     def keyword(self, node):
         return node.value
@@ -286,12 +292,21 @@ class Generator():
             result = result[:-1]
             self.indent -= 1
         if node.body:
-            result += '\n%s{\n' % (self.indent * INDENT)
+            result += ' '
+            node_body = None
+            if isinstance(node.body[0], list):
+                node_body = node.body[0]
+                result += '{'
+            else:
+                node_body = node.body
+            result += '{\n'
             self.indent += 1
-            for _node in node.body:
+            for _node in node_body:
                 result += self.unparse(_node)
             self.indent -= 1
             result += '%s}' % (self.indent * INDENT)
+            if isinstance(node.body[0], list):
+                result += '}'
 
         return result
 
