@@ -97,7 +97,7 @@ class Generator():
         if node.arguments:
             result += '<'
             for _node in node.arguments:
-                result += '%s, ' % self.unparse(_node)
+                result += '%s, ' % self.unparse(_node)[1:-1]
             result = result[:-2]
             result += '>'
         if node.dimensions:
@@ -222,6 +222,8 @@ class Generator():
             if isinstance(node.else_statement, tree.IfStatement):
                 result = result[:-1]
                 result += ' %s' % else_statement_result.lstrip()
+            else:
+                result += else_statement_result
         return result
 
     def return_statement(self, node):
@@ -265,7 +267,7 @@ class Generator():
             )
 
     def type_argument(self, node):
-        return '%s' % self.unparse(node.type)
+        return '<%s>' % self.unparse(node.type)
 
     def keyword(self, node):
         return node.value
