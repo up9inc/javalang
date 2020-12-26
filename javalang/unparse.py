@@ -216,18 +216,24 @@ class Generator():
         return result
 
     def if_statement(self, node):
-        result = '%sif (' % (self.indent * INDENT)
-        result += self.unparse(node.condition)
-        result += ')\n'
-        result += self.unparse(node.then_statement)
-        if node.else_statement:
-            result += '%selse\n' % (self.indent * INDENT)
-            else_statement_result = self.unparse(node.else_statement)
-            if isinstance(node.else_statement, tree.IfStatement):
-                result = result[:-1]
-                result += ' %s' % else_statement_result.lstrip()
+        result = '%s' % (self.indent * INDENT)
+        while (True):
+            result += 'if ('
+            result += self.unparse(node.condition)
+            result += ')\n'
+            result += self.unparse(node.then_statement)
+            if node.else_statement:
+                result += '%selse\n' % (self.indent * INDENT)
+                if isinstance(node.else_statement, tree.IfStatement):
+                    result = result[:-1]
+                    result += ' '
+                    node = node.else_statement
+                    continue
+                else:
+                    result += self.unparse(node.else_statement)
+                    break
             else:
-                result += else_statement_result
+                break
         return result
 
     def return_statement(self, node):
